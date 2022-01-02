@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion</title>
+    <style>
+        .controller {
+            display: flex;
+            flex-direction: column;
+            max-width: 200px;
+            margin: 20px;
+        }
+
+        .controller>label {
+            margin-right: 10px;
+        }
+
+        .controller>input {
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controller">
+        <label for="angel">angel</label>
+        <input type="range" min="0" value="74" max="90" id="angel">
+        <label for="speed">speed</label>
+        <input type="range" min="0" value="4" max="10" step=".5" id="speed" oninput="setSpeed(this.value)">
+        <input type="button" id="play" value="start">
+    </div>
+
+    <canvas id="canvas" width="500" height="400" style="border: solid 1px black;"></canvas>
+    <script>
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext("2d");
+        var time = 0;
+        var x0 = 0;
+        var y0 = canvas.height;
+        var x = x0;
+        var y = y0;
+        var speed = 4;
+        var angel = document.getElementById('angel');
+        var g = 0.05;
+        var run = false;
+        var paly = document.getElementById('play');
+        var prevTimeStamp = 0;
+        var secondsPassed = 0;
+        var animatedVelocity = 100;
+
+        var ReqAnimId;
+
+        var audio = new Audio('on-the-ground.wav');
+
+
+
+        paly.addEventListener('click', toggle);
+        window.onload = init();
+
+
+        function setSpeed(val) {
+            speed=val;
+            console.log('speed',speed);
+        }
+
+        function toggle() {
+            console.log('toggle', run);
+            if (!run) {
+                paly.value = 'reset';
+                x = x0;
+                y = y0;
+                time = 0;
+            } else {
+                paly.value = 'start';
+                location.reload();
+            }
+            run = !run;
+        }
+
+        function init() {
+            console.log("init");
+            ReqAnimId = window.requestAnimationFrame(animationLoop);
+        }
+
+        function  animationLoop (timeStamp) {
+            console.log('animationLoop');
+            secondsPassed = (timeStamp - prevTimeStamp) / 1000;
+            prevTimeStamp = timeStamp;
+            update();
+            draw();
+            ReqAnimId = window.requestAnimationFrame(animationLoop);
+            if (y > 390 && x > 0) {
+                console.log('y > canvas.height');
+                time = 0;
+                x0 = x;
+                y0 = y;
+                speed = speed - 0.5;
+                if (x>10) {
+                    audio.play()
+                }
+
+            }
+            if (speed < 0) {
+                window.cancelAnimationFrame(ReqAnimId);
+            }
+
+
+        }
+
+        function draw() {
+            console.log('draw');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillText('X:' + x, 10, 10);
+            ctx.fillText('Y:' + y, 10, 20);
+            ctx.fillText('Angel:' + angel.value, 10, 30);
+            ctx.fillText('Speed:' + speed, 10, 40);
+
+
+        }
+
+        function update() {
+            console.log('update ');
+            if (run) {
+                console.log('update run true');
+                time += animatedVelocity * secondsPassed;
+                x = speed * Math.cos(-angel.value * Math.PI / 180.) * time + x0;
+                y = 0.5 * g * time * time + speed * Math.sin(-angel.value * Math.PI / 180.) * time + y0;
+            }
+        }
+    </script>
+</body>
+
+</html>
